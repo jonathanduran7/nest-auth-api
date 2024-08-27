@@ -3,7 +3,7 @@ import { IsEmail, IsNotEmpty, IsStrongPassword, Length } from "class-validator";
 export class LoginAuthDto {
 
   @IsNotEmpty()
-  username: string;
+  userName: string;
 
   @IsEmail()
   email: string;
