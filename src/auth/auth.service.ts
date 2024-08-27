@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { LoginAuthDto } from './dto/create-auth.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -16,13 +16,13 @@ export class AuthService {
   async login(loginAuthDto: LoginAuthDto) {
     const existUser = await this.usersRepository.findOne({ where: { email: loginAuthDto.email } })
     if (!existUser) {
-      return 'User not found';
+      throw new UnauthorizedException();
     }
 
     const isPasswordMatch = await bcrypt.compare(loginAuthDto.password, existUser.password);
 
     if (!isPasswordMatch) {
-      return 'Password not match';
+      throw new UnauthorizedException();
     }
 
     return 'This action is login auth';
@@ -31,7 +31,7 @@ export class AuthService {
   async register(loginAuthDto: LoginAuthDto) {
     const existUser = await this.usersRepository.findOne({ where: { email: loginAuthDto.email, userName: loginAuthDto.userName } })
     if (existUser) {
-      return 'User already exists';
+      throw new UnauthorizedException();
     }
 
     const saltOrRounds = 10;
