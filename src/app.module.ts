@@ -10,7 +10,6 @@ import { ConfigModule } from '@nestjs/config';
   imports: [
     AuthModule,
     ConfigModule.forRoot({
-      isGlobal: true,
       envFilePath: '.env',
     }),
     TypeOrmModule.forRoot({
@@ -20,7 +19,7 @@ import { ConfigModule } from '@nestjs/config';
       username: process.env.DATABASE_USER,
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
-      entities: [User],
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
     }),
   ],
