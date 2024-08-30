@@ -51,13 +51,9 @@ export class AuthService {
     return tokens;
   }
 
-  //TODO: remove this method
-  // async refreshToken(refreshToken: string): Promise<{ access_token: string }> {
-  //   const payload = await this.jwtService.verifyAsync(refreshToken);
-  //   return {
-  //     access_token: await this.jwtService.signAsync(payload),
-  //   };
-  // }
+  async logout(userId: number) {
+    await this.usersRepository.update(userId, { refreshToken: null });
+  }
 
   async getTokens(userId: number, email: string): Promise<Tokens> {
     const [at, rt] = await Promise.all([
