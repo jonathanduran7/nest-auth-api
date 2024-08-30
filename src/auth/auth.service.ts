@@ -55,6 +55,24 @@ export class AuthService {
     await this.usersRepository.update(userId, { refreshToken: null });
   }
 
+  async refreshToken(userId: number, rt: string): Promise<Tokens> {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+
+    if (!user || !user.refreshToken) {
+      throw new UnauthorizedException();
+    }
+
+    const isRtMatch = await bcrypt.compare(rt, user.refreshToken);
+
+    if (!isRtMatch) {
+      throw new UnauthorizedException();
+    }
+
+    const tokens = await this.getTokens(user.id, user.email);
+    await this.updateRtHash(user.id, tokens.refresh_token);
+    return tokens;
+  }
+
   async getTokens(userId: number, email: string): Promise<Tokens> {
     const [at, rt] = await Promise.all([
       this.jwtService.signAsync({
