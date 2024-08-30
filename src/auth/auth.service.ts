@@ -29,15 +29,13 @@ export class AuthService {
     }
 
     const tokens = await this.getTokens(existUser.id, existUser.email);
-
+    await this.updateRtHash(existUser.id, tokens.refresh_token);
     return tokens;
   }
 
   async register(loginAuthDto: LoginAuthDto): Promise<Tokens> {
-    console.log(loginAuthDto)
     const existUser = await this.usersRepository.findOne({ where: { email: loginAuthDto.email, userName: loginAuthDto.userName } })
 
-    console.log(existUser)
     if (existUser) {
       throw new UnauthorizedException();
     }
@@ -48,17 +46,18 @@ export class AuthService {
 
     const userRegistered = await this.usersRepository.save(loginAuthDto);
 
-    console.log(userRegistered)
     const tokens = await this.getTokens(userRegistered.id, userRegistered.email);
+    await this.updateRtHash(userRegistered.id, tokens.refresh_token);
     return tokens;
   }
 
-  async refreshToken(refreshToken: string): Promise<{ access_token: string }> {
-    const payload = await this.jwtService.verifyAsync(refreshToken);
-    return {
-      access_token: await this.jwtService.signAsync(payload),
-    };
-  }
+  //TODO: remove this method
+  // async refreshToken(refreshToken: string): Promise<{ access_token: string }> {
+  //   const payload = await this.jwtService.verifyAsync(refreshToken);
+  //   return {
+  //     access_token: await this.jwtService.signAsync(payload),
+  //   };
+  // }
 
   async getTokens(userId: number, email: string): Promise<Tokens> {
     const [at, rt] = await Promise.all([
@@ -82,5 +81,10 @@ export class AuthService {
       access_token: at,
       refresh_token: rt
     }
+  }
+
+  async updateRtHash(userId: number, rt: string) {
+    const hash = await bcrypt.hash(rt, 10);
+    await this.usersRepository.update(userId, { refreshToken: hash });
   }
 }
