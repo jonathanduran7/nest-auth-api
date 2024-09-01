@@ -69,14 +69,14 @@ describe('AuthService', () => {
       jest.spyOn(userRepository, 'findOne').mockResolvedValue(null);
       jest.spyOn(bcrypt, 'hash').mockImplementation(bcryptHashMock);
       jest.spyOn(userRepository, 'save').mockResolvedValue(userSaved);
-      jest.spyOn(service, 'getTokens').mockResolvedValue(tokens);
+      jest.spyOn(service, 'createTokens').mockResolvedValue(tokens);
       jest.spyOn(service, 'updateRtHash').mockResolvedValue(undefined);
 
       const result = await service.register(loginAuthDto);
       expect(result).toEqual(tokens);
       expect(userRepository.findOne).toHaveBeenCalledWith({ where: { email: loginAuthDto.email, userName: loginAuthDto.userName } });
       expect(userRepository.save).toHaveBeenCalledWith({ ...loginAuthDto, password: 'hashedPassword' });
-      expect(service.getTokens).toHaveBeenCalledWith(userSaved.id, userSaved.email);
+      expect(service.createTokens).toHaveBeenCalledWith(userSaved.id, userSaved.email);
       expect(service.updateRtHash).toHaveBeenCalledWith(userSaved.id, tokens.refresh_token);
     })
 
@@ -98,7 +98,7 @@ describe('AuthService', () => {
 
       jest.spyOn(userRepository, 'findOne').mockResolvedValue(userSaved);
       jest.spyOn(bcrypt, 'compare').mockImplementation(bcryptCompareMock);
-      jest.spyOn(service, 'getTokens').mockResolvedValue(tokens);
+      jest.spyOn(service, 'createTokens').mockResolvedValue(tokens);
       jest.spyOn(service, 'updateRtHash').mockResolvedValue(undefined);
 
       const result = await service.login(loginAuthDto);
@@ -146,7 +146,7 @@ describe('AuthService', () => {
       jest.spyOn(userRepository, 'findOne').mockResolvedValue(userSaved);
 
       jest.spyOn(bcrypt, 'compare').mockImplementation(bcryptCompareMock);
-      jest.spyOn(service, 'getTokens').mockResolvedValue(tokens);
+      jest.spyOn(service, 'createTokens').mockResolvedValue(tokens);
       jest.spyOn(service, 'updateRtHash').mockResolvedValue(undefined);
 
       const result = await service.refreshToken(userSaved.id, 'refresh_token');
