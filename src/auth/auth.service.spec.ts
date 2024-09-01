@@ -122,4 +122,41 @@ describe('AuthService', () => {
       await expect(service.login(loginAuthDto)).rejects.toThrow();
     })
   })
+
+  describe('logout', () => {
+    it('should logout user', async () => {
+      jest.spyOn(userRepository, 'update').mockResolvedValue(undefined);
+      await service.logout(userSaved.id);
+      expect(userRepository.update).toHaveBeenCalledWith(userSaved.id, { refreshToken: null });
+    })
+  })
+
+  describe('refreshToken', () => {
+    it('should refresh token', async () => {
+      const tokens = {
+        access_token: 'access_token_value',
+        refresh_token: 'refresh_token_value',
+      }
+
+      // if necessary that userSaved has refreshToken
+      userSaved.refreshToken = 'hashedRefreshToken';
+
+      const bcryptCompareMock = jest.fn().mockResolvedValue(true);
+
+      jest.spyOn(userRepository, 'findOne').mockResolvedValue(userSaved);
+
+      jest.spyOn(bcrypt, 'compare').mockImplementation(bcryptCompareMock);
+      jest.spyOn(service, 'getTokens').mockResolvedValue(tokens);
+      jest.spyOn(service, 'updateRtHash').mockResolvedValue(undefined);
+
+      const result = await service.refreshToken(userSaved.id, 'refresh_token');
+
+      expect(result).toEqual(tokens);
+    })
+
+    it('should not refresh token if user does not exist', async () => {
+      jest.spyOn(userRepository, 'findOne').mockResolvedValue(null);
+      await expect(service.refreshToken(userSaved.id, 'refresh_token')).rejects.toThrow();
+    })
+  })
 });
