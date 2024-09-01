@@ -27,9 +27,7 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    const tokens = await this.getTokens(existUser.id, existUser.email);
-    await this.updateRtHash(existUser.id, tokens.refresh_token);
-    return tokens;
+    return this.getTokens(existUser)
   }
 
   async register(loginAuthDto: LoginAuthDto): Promise<Tokens> {
@@ -45,9 +43,7 @@ export class AuthService {
 
     const userRegistered = await this.usersRepository.save(loginAuthDto);
 
-    const tokens = await this.getTokens(userRegistered.id, userRegistered.email);
-    await this.updateRtHash(userRegistered.id, tokens.refresh_token);
-    return tokens;
+    return this.getTokens(userRegistered);
   }
 
   async logout(userId: number) {
@@ -67,12 +63,10 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    const tokens = await this.getTokens(user.id, user.email);
-    await this.updateRtHash(user.id, tokens.refresh_token);
-    return tokens;
+    return this.getTokens(user);
   }
 
-  async getTokens(userId: number, email: string): Promise<Tokens> {
+  async createTokens(userId: number, email: string): Promise<Tokens> {
     const [at, rt] = await Promise.all([
       this.jwtService.signAsync({
         sub: userId,
@@ -99,5 +93,11 @@ export class AuthService {
   async updateRtHash(userId: number, rt: string) {
     const hash = await bcrypt.hash(rt, 10);
     await this.usersRepository.update(userId, { refreshToken: hash });
+  }
+
+  async getTokens(user: User): Promise<Tokens> {
+    const tokens = await this.createTokens(user.id, user.email);
+    await this.updateRtHash(user.id, tokens.refresh_token);
+    return tokens;
   }
 }
