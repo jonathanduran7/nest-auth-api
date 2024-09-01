@@ -79,5 +79,27 @@ describe('AuthService', () => {
       expect(service.getTokens).toHaveBeenCalledWith(savedUser.id, savedUser.email);
       expect(service.updateRtHash).toHaveBeenCalledWith(savedUser.id, tokens.refresh_token);
     })
+
+    it('should not register user if user already exists', async () => {
+      const loginAuthDto = {
+        email: 'test@gmail.com',
+        password: 'password',
+        userName: 'testUser',
+      }
+
+      const savedUser: User = {
+        id: 1,
+        email: loginAuthDto.email,
+        userName: 'testUser',
+        password: 'hashedPassword',
+        isActive: true,
+        refreshToken: null,
+        createAt: new Date(),
+      };
+
+      jest.spyOn(userRepository, 'findOne').mockResolvedValue(savedUser);
+
+      await expect(service.register(loginAuthDto)).rejects.toThrow();
+    })
   })
 });
