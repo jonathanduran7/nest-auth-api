@@ -12,6 +12,22 @@ describe('AuthService', () => {
 
   const USER_REPOSITORY_TOKEN = getRepositoryToken(User);
 
+  const loginAuthDto = {
+    email: 'testing@gmail.com',
+    userName: 'testUser',
+    password: 'password',
+  }
+
+  const userSaved = {
+    id: 1,
+    email: loginAuthDto.email,
+    userName: loginAuthDto.userName,
+    password: 'hashedPassword',
+    isActive: true,
+    refreshToken: null,
+    createAt: new Date(),
+  }
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -42,22 +58,6 @@ describe('AuthService', () => {
 
   describe('register', () => {
     it('should register user', async () => {
-      const loginAuthDto = {
-        email: 'test@example.com',
-        userName: 'testUser',
-        password: 'testPassword',
-      };
-
-      const savedUser: User = {
-        id: 1,
-        email: loginAuthDto.email,
-        userName: loginAuthDto.userName,
-        password: 'hashedPassword',
-        isActive: true,
-        refreshToken: null,
-        createAt: new Date(),
-      };
-
       const tokens = {
         access_token: 'access_token_value',
         refresh_token: 'refresh_token_value',
@@ -68,7 +68,7 @@ describe('AuthService', () => {
       // mocking methods
       jest.spyOn(userRepository, 'findOne').mockResolvedValue(null);
       jest.spyOn(bcrypt, 'hash').mockImplementation(bcryptHashMock);
-      jest.spyOn(userRepository, 'save').mockResolvedValue(savedUser);
+      jest.spyOn(userRepository, 'save').mockResolvedValue(userSaved);
       jest.spyOn(service, 'getTokens').mockResolvedValue(tokens);
       jest.spyOn(service, 'updateRtHash').mockResolvedValue(undefined);
 
@@ -76,28 +76,12 @@ describe('AuthService', () => {
       expect(result).toEqual(tokens);
       expect(userRepository.findOne).toHaveBeenCalledWith({ where: { email: loginAuthDto.email, userName: loginAuthDto.userName } });
       expect(userRepository.save).toHaveBeenCalledWith({ ...loginAuthDto, password: 'hashedPassword' });
-      expect(service.getTokens).toHaveBeenCalledWith(savedUser.id, savedUser.email);
-      expect(service.updateRtHash).toHaveBeenCalledWith(savedUser.id, tokens.refresh_token);
+      expect(service.getTokens).toHaveBeenCalledWith(userSaved.id, userSaved.email);
+      expect(service.updateRtHash).toHaveBeenCalledWith(userSaved.id, tokens.refresh_token);
     })
 
     it('should not register user if user already exists', async () => {
-      const loginAuthDto = {
-        email: 'test@gmail.com',
-        password: 'password',
-        userName: 'testUser',
-      }
-
-      const savedUser: User = {
-        id: 1,
-        email: loginAuthDto.email,
-        userName: 'testUser',
-        password: 'hashedPassword',
-        isActive: true,
-        refreshToken: null,
-        createAt: new Date(),
-      };
-
-      jest.spyOn(userRepository, 'findOne').mockResolvedValue(savedUser);
+      jest.spyOn(userRepository, 'findOne').mockResolvedValue(userSaved);
 
       await expect(service.register(loginAuthDto)).rejects.toThrow();
     })
@@ -105,22 +89,6 @@ describe('AuthService', () => {
 
   describe('login', () => {
     it('should login user', async () => {
-      const loginAuthDto = {
-        email: 'testing@gmail.com',
-        password: 'password',
-        userName: 'testUser'
-      }
-
-      const savedUser: User = {
-        id: 1,
-        email: loginAuthDto.email,
-        userName: 'testUser',
-        password: 'hashedPassword',
-        isActive: true,
-        refreshToken: null,
-        createAt: new Date(),
-      };
-
       const tokens = {
         access_token: 'access_token_value',
         refresh_token: 'refresh_token_value',
@@ -128,7 +96,7 @@ describe('AuthService', () => {
 
       const bcryptCompareMock = jest.fn().mockResolvedValue(true);
 
-      jest.spyOn(userRepository, 'findOne').mockResolvedValue(savedUser);
+      jest.spyOn(userRepository, 'findOne').mockResolvedValue(userSaved);
       jest.spyOn(bcrypt, 'compare').mockImplementation(bcryptCompareMock);
       jest.spyOn(service, 'getTokens').mockResolvedValue(tokens);
       jest.spyOn(service, 'updateRtHash').mockResolvedValue(undefined);
@@ -136,7 +104,22 @@ describe('AuthService', () => {
       const result = await service.login(loginAuthDto);
       expect(result).toEqual(tokens);
       expect(userRepository.findOne).toHaveBeenCalledWith({ where: { email: loginAuthDto.email } });
-      expect(bcrypt.compare).toHaveBeenCalledWith(loginAuthDto.password, savedUser.password);
+      expect(bcrypt.compare).toHaveBeenCalledWith(loginAuthDto.password, userSaved.password);
     });
+
+    it('should not login user if user does not exist', async () => {
+      jest.spyOn(userRepository, 'findOne').mockResolvedValue(null);
+
+      await expect(service.login(loginAuthDto)).rejects.toThrow();
+    })
+
+    it('should not login user if password does not match', async () => {
+      const bcryptCompareMock = jest.fn().mockResolvedValue(false);
+
+      jest.spyOn(userRepository, 'findOne').mockResolvedValue(userSaved);
+      jest.spyOn(bcrypt, 'compare').mockImplementation(bcryptCompareMock);
+
+      await expect(service.login(loginAuthDto)).rejects.toThrow();
+    })
   })
 });
