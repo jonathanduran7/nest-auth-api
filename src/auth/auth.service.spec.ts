@@ -102,4 +102,41 @@ describe('AuthService', () => {
       await expect(service.register(loginAuthDto)).rejects.toThrow();
     })
   })
+
+  describe('login', () => {
+    it('should login user', async () => {
+      const loginAuthDto = {
+        email: 'testing@gmail.com',
+        password: 'password',
+        userName: 'testUser'
+      }
+
+      const savedUser: User = {
+        id: 1,
+        email: loginAuthDto.email,
+        userName: 'testUser',
+        password: 'hashedPassword',
+        isActive: true,
+        refreshToken: null,
+        createAt: new Date(),
+      };
+
+      const tokens = {
+        access_token: 'access_token_value',
+        refresh_token: 'refresh_token_value',
+      }
+
+      const bcryptCompareMock = jest.fn().mockResolvedValue(true);
+
+      jest.spyOn(userRepository, 'findOne').mockResolvedValue(savedUser);
+      jest.spyOn(bcrypt, 'compare').mockImplementation(bcryptCompareMock);
+      jest.spyOn(service, 'getTokens').mockResolvedValue(tokens);
+      jest.spyOn(service, 'updateRtHash').mockResolvedValue(undefined);
+
+      const result = await service.login(loginAuthDto);
+      expect(result).toEqual(tokens);
+      expect(userRepository.findOne).toHaveBeenCalledWith({ where: { email: loginAuthDto.email } });
+      expect(bcrypt.compare).toHaveBeenCalledWith(loginAuthDto.password, savedUser.password);
+    });
+  })
 });
