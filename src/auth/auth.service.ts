@@ -9,10 +9,9 @@ import { Tokens } from './types';
 
 @Injectable()
 export class AuthService {
-
   constructor(
     @InjectRepository(User)
-    private usersRepository: Repository<User>,
+    private readonly usersRepository: Repository<User>,
     private jwtService: JwtService,
   ) { }
 
