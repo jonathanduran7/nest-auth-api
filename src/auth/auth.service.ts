@@ -16,22 +16,30 @@ export class AuthService {
   ) { }
 
   async login(loginAuthDto: LoginAuthDto): Promise<Tokens> {
-    const existUser = await this.usersRepository.findOne({ where: { email: loginAuthDto.email } })
+    const existUser = await this.usersRepository.findOne({
+      where: { email: loginAuthDto.email },
+    });
     if (!existUser) {
       throw new UnauthorizedException();
     }
 
-    const isPasswordMatch = await bcrypt.compare(loginAuthDto.password, existUser.password);
+    const isPasswordMatch = await bcrypt.compare(
+      loginAuthDto.password,
+      existUser.password,
+    );
 
     if (!isPasswordMatch) {
       throw new UnauthorizedException();
     }
 
-    return this.getTokens(existUser)
+    return this.getTokens(existUser);
   }
 
   async register(loginAuthDto: LoginAuthDto): Promise<Tokens> {
-    const existUser = await this.usersRepository.findOne({ where: { email: loginAuthDto.email, userName: loginAuthDto.userName } })
+    const existUser = await this.usersRepository.findOneBy([
+      { email: loginAuthDto.email },
+      { userName: loginAuthDto.userName },
+    ]);
 
     if (existUser) {
       throw new UnauthorizedException();
@@ -68,26 +76,32 @@ export class AuthService {
 
   async createTokens(userId: number, email: string): Promise<Tokens> {
     const [at, rt] = await Promise.all([
-      this.jwtService.signAsync({
-        sub: userId,
-        email
-      }, {
-        secret: 'at-secret',
-        expiresIn: 60 * 15
-      }),
-      this.jwtService.signAsync({
-        sub: userId,
-        email
-      }, {
-        secret: 'rt-secret',
-        expiresIn: 60 * 60 * 24 * 30
-      })
-    ])
+      this.jwtService.signAsync(
+        {
+          sub: userId,
+          email,
+        },
+        {
+          secret: 'at-secret',
+          expiresIn: 60 * 15,
+        },
+      ),
+      this.jwtService.signAsync(
+        {
+          sub: userId,
+          email,
+        },
+        {
+          secret: 'rt-secret',
+          expiresIn: 60 * 60 * 24 * 30,
+        },
+      ),
+    ]);
 
     return {
       access_token: at,
-      refresh_token: rt
-    }
+      refresh_token: rt,
+    };
   }
 
   async updateRtHash(userId: number, rt: string) {
