@@ -1,6 +1,8 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { IsStrongPassword } from 'class-validator';
 
 export class UpdatePasswordDto {
+  @ApiProperty()
   @IsStrongPassword({
     minNumbers: 1,
     minLength: 8,
@@ -10,6 +12,7 @@ export class UpdatePasswordDto {
   })
   newPassword: string;
 
+  @ApiProperty()
   @IsStrongPassword({
     minNumbers: 1,
     minLength: 8,
