@@ -1,11 +1,6 @@
-import { IsEmail, IsStrongPassword } from 'class-validator';
+import { IsStrongPassword } from 'class-validator';
 
-export class LoginAuthDto {
-  userName: string;
-
-  @IsEmail()
-  email: string;
-
+export class UpdatePasswordDto {
   @IsStrongPassword({
     minNumbers: 1,
     minLength: 8,
