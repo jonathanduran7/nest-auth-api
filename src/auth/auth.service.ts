@@ -115,9 +115,21 @@ export class AuthService {
     return tokens;
   }
 
-  async updatePassword(userId: number, password: string) {
+  async updatePassword(
+    userId: number,
+    newPassword: string,
+    oldPassword: string,
+  ) {
     const saltOrRounds = 10;
-    const hash = await bcrypt.hash(password, saltOrRounds);
+    const hash = await bcrypt.hash(newPassword, saltOrRounds);
+
+    const user = await this.usersRepository.findOneBy({ id: userId });
+    const isPasswordMatch = await bcrypt.compare(oldPassword, user.password);
+
+    if (!isPasswordMatch) {
+      throw new UnauthorizedException({ message: 'Old password is incorrect' });
+    }
+
     await this.usersRepository.update(userId, { password: hash });
   }
 }

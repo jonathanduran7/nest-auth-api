@@ -58,8 +58,8 @@ export class AuthController {
     @GetCurrentUserId() userId: number,
     @Body() updatePasswordDto: UpdatePasswordDto,
   ) {
-    const { password } = updatePasswordDto;
+    const { newPassword, oldPassword } = updatePasswordDto;
 
-    return this.authService.updatePassword(userId, password);
+    return this.authService.updatePassword(userId, newPassword, oldPassword);
   }
 }
