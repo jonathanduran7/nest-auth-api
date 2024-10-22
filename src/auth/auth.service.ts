@@ -13,7 +13,7 @@ export class AuthService {
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
     private jwtService: JwtService,
-  ) { }
+  ) {}
 
   async login(loginAuthDto: LoginAuthDto): Promise<Tokens> {
     const existUser = await this.usersRepository.findOne({
@@ -113,5 +113,11 @@ export class AuthService {
     const tokens = await this.createTokens(user.id, user.email);
     await this.updateRtHash(user.id, tokens.refresh_token);
     return tokens;
+  }
+
+  async updatePassword(userId: number, password: string) {
+    const saltOrRounds = 10;
+    const hash = await bcrypt.hash(password, saltOrRounds);
+    await this.usersRepository.update(userId, { password: hash });
   }
 }
