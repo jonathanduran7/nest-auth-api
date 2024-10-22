@@ -17,7 +17,9 @@ import {
   Public,
 } from 'src/commons/decorators';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -37,6 +39,7 @@ export class AuthController {
   }
 
   @Post('logout')
+  @ApiSecurity('basic')
   @HttpCode(HttpStatus.OK)
   logout(@GetCurrentUserId() userId: number, @Request() req: any) {
     const token = req.headers.authorization.split(' ')[1];
@@ -46,6 +49,7 @@ export class AuthController {
   @Public()
   @UseGuards(RtGuard)
   @Post('refresh')
+  @ApiSecurity('basic')
   @HttpCode(HttpStatus.OK)
   refreshTokens(
     @GetCurrentUserId() userId: number,
@@ -56,6 +60,7 @@ export class AuthController {
 
   @Put('update-password')
   @HttpCode(HttpStatus.OK)
+  @ApiSecurity('basic')
   updatePassword(
     @GetCurrentUserId() userId: number,
     @Body() updatePasswordDto: UpdatePasswordDto,
