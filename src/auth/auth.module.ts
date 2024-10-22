@@ -6,9 +6,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
 import { AtStrategy, RtStrategy } from './strategies';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
+    CacheModule.register(),
     TypeOrmModule.forFeature([User]),
     ConfigModule.forRoot({
       envFilePath: '.env',
@@ -22,4 +24,4 @@ import { AtStrategy, RtStrategy } from './strategies';
   controllers: [AuthController],
   providers: [AuthService, AtStrategy, RtStrategy],
 })
-export class AuthModule { }
+export class AuthModule {}

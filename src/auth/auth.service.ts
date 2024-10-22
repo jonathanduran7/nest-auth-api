@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { LoginAuthDto } from './dto/create-auth.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,6 +6,8 @@ import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { Tokens } from './types';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class AuthService {
@@ -13,6 +15,7 @@ export class AuthService {
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
     private jwtService: JwtService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async login(loginAuthDto: LoginAuthDto): Promise<Tokens> {
@@ -54,7 +57,16 @@ export class AuthService {
     return this.getTokens(userRegistered);
   }
 
-  async logout(userId: number) {
+  async logout(userId: number, token: string) {
+    const tokenInCache = await this.cacheManager.get(token);
+
+    if (tokenInCache) {
+      throw new UnauthorizedException();
+    }
+
+    const halfHour = 30 * 60 * 1000;
+
+    await this.cacheManager.set(token, 'revoked', halfHour);
     await this.usersRepository.update(userId, { refreshToken: null });
   }
 

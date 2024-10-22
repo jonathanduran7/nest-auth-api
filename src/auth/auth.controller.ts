@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Put,
+  Request,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginAuthDto } from './dto/create-auth.dto';
@@ -37,8 +38,9 @@ export class AuthController {
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  logout(@GetCurrentUserId() userId: number) {
-    return this.authService.logout(userId);
+  logout(@GetCurrentUserId() userId: number, @Request() req: any) {
+    const token = req.headers.authorization.split(' ')[1];
+    return this.authService.logout(userId, token);
   }
 
   @Public()
@@ -59,7 +61,6 @@ export class AuthController {
     @Body() updatePasswordDto: UpdatePasswordDto,
   ) {
     const { newPassword, oldPassword } = updatePasswordDto;
-
     return this.authService.updatePassword(userId, newPassword, oldPassword);
   }
 }

@@ -6,9 +6,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { AtGuard } from './commons/guards';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
+    CacheModule.register({ isGlobal: true }),
     AuthModule,
     ConfigModule.forRoot({
       envFilePath: '.env',
@@ -28,8 +30,9 @@ import { AtGuard } from './commons/guards';
   providers: [
     AppService,
     {
-      provide: APP_GUARD, useClass: AtGuard
-    }
-  ]
+      provide: APP_GUARD,
+      useClass: AtGuard,
+    },
+  ],
 })
-export class AppModule { }
+export class AppModule {}
