@@ -71,3 +71,15 @@ Para ejecutar las pruebas unitarias, ejecute `npm run test`
 - Authorization
   - Bearer token: refresh_token
 
+### Cambiar contraseña
+
+- Método: Put
+- Ruta: /auth/change-password
+- Authorization
+  - Bearer token: access_token
+- Body:
+```json
+{
+  "newPassword": "newPassword",
+  "oldPassword": "oldPassword"
+}
