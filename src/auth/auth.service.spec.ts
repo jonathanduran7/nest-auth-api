@@ -182,4 +182,23 @@ describe('AuthService', () => {
       ).rejects.toThrow();
     });
   });
+
+  describe('update password', () => {
+    it('if password not match should throw error', async () => {
+      const updatePasswordDto = {
+        oldPassword: 'password',
+        newPassword: 'newPassword',
+      };
+      const bcryptCompareMock = jest.fn().mockResolvedValue(false);
+      jest.spyOn(userRepository, 'findOneBy').mockResolvedValue(userSaved);
+      jest.spyOn(bcrypt, 'compare').mockImplementation(bcryptCompareMock);
+      await expect(
+        service.updatePassword(
+          userSaved.id,
+          updatePasswordDto.newPassword,
+          updatePasswordDto.oldPassword,
+        ),
+      ).rejects.toThrow();
+    });
+  });
 });
