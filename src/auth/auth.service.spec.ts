@@ -200,5 +200,38 @@ describe('AuthService', () => {
         ),
       ).rejects.toThrow();
     });
+
+    it('should update password', async () => {
+      const updatePasswordDto = {
+        oldPassword: 'password',
+        newPassword: 'newPassword',
+      };
+
+      // mocking methods
+      const bcryptHashMock = jest.fn().mockResolvedValue('hashedPassword');
+      const bcryptCompareMock = jest.fn().mockResolvedValue(true);
+
+      jest.spyOn(userRepository, 'findOneBy').mockResolvedValue(userSaved);
+      jest.spyOn(bcrypt, 'compare').mockImplementation(bcryptCompareMock);
+      jest.spyOn(bcrypt, 'hash').mockImplementation(bcryptHashMock);
+
+      jest.spyOn(userRepository, 'update').mockResolvedValue(undefined);
+
+      await service.updatePassword(
+        userSaved.id,
+        updatePasswordDto.newPassword,
+        updatePasswordDto.oldPassword,
+      );
+
+      // assertions
+      expect(bcrypt.hash).toHaveBeenCalledWith(
+        updatePasswordDto.newPassword,
+        10,
+      );
+
+      expect(userRepository.update).toHaveBeenCalledWith(userSaved.id, {
+        password: 'hashedPassword',
+      });
+    });
   });
 });
