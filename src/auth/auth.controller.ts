@@ -5,6 +5,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Put,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginAuthDto } from './dto/create-auth.dto';
@@ -14,6 +15,7 @@ import {
   GetCurrentUserId,
   Public,
 } from 'src/commons/decorators';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -48,5 +50,16 @@ export class AuthController {
     @GetCurrentUser('refreshToken') refreshToken: string,
   ) {
     return this.authService.refreshToken(userId, refreshToken);
+  }
+
+  @Put('update-password')
+  @HttpCode(HttpStatus.OK)
+  updatePassword(
+    @GetCurrentUserId() userId: number,
+    @Body() updatePasswordDto: UpdatePasswordDto,
+  ) {
+    const { password } = updatePasswordDto;
+
+    return this.authService.updatePassword(userId, password);
   }
 }
