@@ -8,5 +8,14 @@ export class UpdatePasswordDto {
     minUppercase: 0,
     minSymbols: 0,
   })
-  password: string;
+  newPassword: string;
+
+  @IsStrongPassword({
+    minNumbers: 1,
+    minLength: 8,
+    minLowercase: 1,
+    minUppercase: 0,
+    minSymbols: 0,
+  })
+  oldPassword: string;
 }
