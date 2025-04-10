@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Put,
   Request,
+  UseFilters,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginAuthDto } from './dto/create-auth.dto';
@@ -18,7 +19,9 @@ import {
 } from 'src/commons/decorators';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { AuthValidationExceptionFilter } from './filters/auth-validation-exception.filter';
 
+@UseFilters(AuthValidationExceptionFilter)
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
